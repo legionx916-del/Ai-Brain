@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multi-AI Hub Controller</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body {
+    background: #121212;
+    color: white;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    margin: 0;
+  }
+  h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  textarea {
+    width: 100%;
+    height: 140px;
+    background: #222;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+  button {
+    width: 100%;
+    padding: 16px;
+    margin: 12px 0;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .status {
+    text-align: center;
+    color: #aaa;
+    margin: 12px 0;
+    font-size: 15px;
+  }
+  .response {
+    background: #1e1e1e;
+    padding: 12px;
+    margin: 12px 0;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  h3 {
+    margin: 20px 0 8px;
+    font-size: 18px;
+  }
+</style>
+</head>
+<body>
+<h2>Multi-AI Hub Controller</h2>
+
+<textarea id="prompt" placeholder="Enter your prompt here..."></textarea>
+
+<button onclick="broadcast()">Broadcast Prompt</button>
+<button onclick="readResponses()">Read Responses</button>
+
+<div id="status" class="status">Ready</div>
+
+<h3>Responses from Models</h3>
+<div id="responses"></div>
+
+<script>
+function broadcast() {
+  const prompt = document.getElementById('prompt').value.trim();
+  if (!prompt) {
+    document.getElementById('status').innerText = 'Enter a prompt first';
+    return;
+  }
+  localStorage.setItem('broadcast_prompt', prompt);
+  document.getElementById('status').innerText = 'Prompt sent to all tabs';
+  setTimeout(() => {
+    document.getElementById('status').innerText = 'Ready';
+  }, 4000);
+}
+
+function readResponses() {
+  const models = [
+    { key: 'chatgpt', name: 'ChatGPT' },
+    { key: 'claude', name: 'Claude' },
+    { key: 'gemini', name: 'Gemini' },
+    { key: 'copilot', name: 'Copilot' },
+    { key: 'grok', name: 'Grok' }
+  ];
+
+  let html = '';
+  models.forEach(model => {
+    const response = localStorage.getItem(`resp_${model.key}`) || 'No response from this model yet';
+    html += `<div class="response">
+      <strong>${model.name}</strong><br>
+      ${response.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+    </div>`;
+  });
+
+  document.getElementById('responses').innerHTML = html;
+}
+
+// Auto-refresh responses every 5 seconds
+setInterval(readResponses, 5000);
+
+// Load immediately on page open
+readResponses();
+</script>
+</body>
+</html>
