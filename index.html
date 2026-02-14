@@ -1,116 +1,454 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Multi-AI Hub Controller</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  body {
-    background: #121212;
-    color: white;
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    margin: 0;
-  }
-  h2 {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  textarea {
-    width: 100%;
-    height: 140px;
-    background: #222;
-    color: white;
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 12px;
-    box-sizing: border-box;
-    font-size: 16px;
-  }
-  button {
-    width: 100%;
-    padding: 16px;
-    margin: 12px 0;
-    background: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 18px;
-    cursor: pointer;
-  }
-  .status {
-    text-align: center;
-    color: #aaa;
-    margin: 12px 0;
-    font-size: 15px;
-  }
-  .response {
-    background: #1e1e1e;
-    padding: 12px;
-    margin: 12px 0;
-    border-radius: 8px;
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-  h3 {
-    margin: 20px 0 8px;
-    font-size: 18px;
-  }
-</style>
-</head>
-<body>
-<h2>Multi-AI Hub Controller</h2>
+#!/usr/bin/env bash
+# ============================================================
+#  Multi AI Hub — FULL ANDROID APP GENERATOR
+#  Creates a complete Android Studio project with:
+#    - 5 WebViews (Copilot, Gemini, ChatGPT, Grok, Claude)
+#    - 2 top, 3 bottom layout
+#    - Prompt box
+#    - Output box
+#    - Send / Next / Mix buttons
+#    - Invisible IAI Engine
+# ============================================================
 
-<textarea id="prompt" placeholder="Enter your prompt here..."></textarea>
+APP_NAME="MultiAiHub"
+PKG="com.example.multiaihub"
+PKG_PATH="com/example/multiaihub"
 
-<button onclick="broadcast()">Broadcast Prompt</button>
-<button onclick="readResponses()">Read Responses</button>
+echo "Creating project: $APP_NAME"
+mkdir -p $APP_NAME
+cd $APP_NAME
 
-<div id="status" class="status">Ready</div>
+# ------------------------------
+# settings.gradle
+# ------------------------------
+cat > settings.gradle << 'EOF'
+rootProject.name = "MultiAiHub"
+include ':app'
+EOF
 
-<h3>Responses from Models</h3>
-<div id="responses"></div>
-
-<script>
-function broadcast() {
-  const prompt = document.getElementById('prompt').value.trim();
-  if (!prompt) {
-    document.getElementById('status').innerText = 'Enter a prompt first';
-    return;
-  }
-  localStorage.setItem('broadcast_prompt', prompt);
-  document.getElementById('status').innerText = 'Prompt sent to all tabs';
-  setTimeout(() => {
-    document.getElementById('status').innerText = 'Ready';
-  }, 4000);
+# ------------------------------
+# Root build.gradle
+# ------------------------------
+cat > build.gradle << 'EOF'
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22'
+    }
 }
 
-function readResponses() {
-  const models = [
-    { key: 'chatgpt', name: 'ChatGPT' },
-    { key: 'claude', name: 'Claude' },
-    { key: 'gemini', name: 'Gemini' },
-    { key: 'copilot', name: 'Copilot' },
-    { key: 'grok', name: 'Grok' }
-  ];
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+EOF
 
-  let html = '';
-  models.forEach(model => {
-    const response = localStorage.getItem(`resp_${model.key}`) || 'No response from this model yet';
-    html += `<div class="response">
-      <strong>${model.name}</strong><br>
-      ${response.replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-    </div>`;
-  });
+# ------------------------------
+# gradle.properties
+# ------------------------------
+cat > gradle.properties << 'EOF'
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+android.useAndroidX=true
+kotlin.code.style=official
+EOF
 
-  document.getElementById('responses').innerHTML = html;
+# ------------------------------
+# App module
+# ------------------------------
+mkdir -p app/src/main/java/$PKG_PATH
+mkdir -p app/src/main/res/layout
+mkdir -p app/src/main/res/values
+mkdir -p app/src/main/res/drawable
+
+# ------------------------------
+# app/build.gradle
+# ------------------------------
+cat > app/build.gradle << 'EOF'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
 }
 
-// Auto-refresh responses every 5 seconds
-setInterval(readResponses, 5000);
+android {
+    namespace 'com.example.multiaihub'
+    compileSdk 34
 
-// Load immediately on page open
-readResponses();
-</script>
-</body>
-</html>
+    defaultConfig {
+        applicationId "com.example.multiaihub"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.activity:activity-ktx:1.9.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.0'
+}
+EOF
+
+# ------------------------------
+# AndroidManifest.xml
+# ------------------------------
+cat > app/src/main/AndroidManifest.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.multiaihub">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:label="Multi AI Hub"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MultiAiHub">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
+EOF
+
+# ------------------------------
+# activity_main.xml
+# ------------------------------
+cat > app/src/main/res/layout/activity_main.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#101010"
+    android:padding="4dp">
+
+    <!-- TOP ROW (2 AIs) -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:weightSum="2">
+
+        <WebView
+            android:id="@+id/web_copilot"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <WebView
+            android:id="@+id/web_gemini"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <!-- BOTTOM ROW (3 AIs) -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:weightSum="3">
+
+        <WebView
+            android:id="@+id/web_chatgpt"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <WebView
+            android:id="@+id/web_grok"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+
+        <WebView
+            android:id="@+id/web_claude"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <!-- OUTPUT BOX -->
+    <TextView
+        android:id="@+id/output_box"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:background="#181818"
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:text="Output will appear here..." />
+
+    <!-- PROMPT INPUT -->
+    <EditText
+        android:id="@+id/prompt_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Type your prompt..."
+        android:textColor="#FFFFFF"
+        android:textColorHint="#888888"
+        android:background="#202020"
+        android:padding="8dp" />
+
+    <!-- BUTTONS -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="3">
+
+        <Button
+            android:id="@+id/btn_send"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Send" />
+
+        <Button
+            android:id="@+id/btn_next"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Next" />
+
+        <Button
+            android:id="@+id/btn_mix"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Mix" />
+    </LinearLayout>
+
+</LinearLayout>
+EOF
+
+# ------------------------------
+# colors.xml
+# ------------------------------
+cat > app/src/main/res/values/colors.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+</resources>
+EOF
+
+# ------------------------------
+# themes.xml
+# ------------------------------
+cat > app/src/main/res/values/themes.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MultiAiHub" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="android:statusBarColor">@color/black</item>
+    </style>
+</resources>
+EOF
+
+# ------------------------------
+# IAIEngine.kt (invisible)
+# ------------------------------
+cat > app/src/main/java/$PKG_PATH/IAIEngine.kt << 'EOF'
+package com.example.multiaihub
+
+object IAIEngine {
+    data class Observation(
+        val source: String,
+        val prompt: String?,
+        val response: String?,
+        val timestamp: Long = System.currentTimeMillis()
+    )
+
+    private val history = mutableListOf<Observation>()
+
+    fun observePrompt(prompt: String) {
+        history.add(Observation("PROMPT", prompt, null))
+    }
+
+    fun observeResponse(source: String, prompt: String, response: String) {
+        history.add(Observation(source, prompt, response))
+    }
+}
+EOF
+
+# ------------------------------
+# MainActivity.kt
+# ------------------------------
+cat > app/src/main/java/$PKG_PATH/MainActivity.kt << 'EOF'
+package com.example.multiaihub
+
+import android.annotation.SuppressLint
+import android.os.Bundle
+import android.text.method.ScrollingMovementMethod
+import android.webkit.WebChromeClient
+import android.webkit.WebSettings
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var webCopilot: WebView
+    private lateinit var webGemini: WebView
+    private lateinit var webChatGPT: WebView
+    private lateinit var webGrok: WebView
+    private lateinit var webClaude: WebView
+
+    private lateinit var outputBox: TextView
+    private lateinit var promptInput: EditText
+    private lateinit var btnSend: Button
+    private lateinit var btnNext: Button
+    private lateinit var btnMix: Button
+
+    private val aiNames = listOf("Copilot", "Gemini", "ChatGPT", "Grok", "Claude")
+    private val aiUrls = listOf(
+        "https://copilot.microsoft.com",
+        "https://gemini.google.com",
+        "https://chat.openai.com",
+        "https://x.com/i/grok",
+        "https://claude.ai"
+    )
+
+    private val responses = mutableMapOf<String, String>()
+    private var responseOrder = aiNames
+    private var currentIndex = 0
+    private var lastPrompt = ""
+
+    @SuppressLint("SetJavaScriptEnabled")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        webCopilot = findViewById(R.id.web_copilot)
+        webGemini = findViewById(R.id.web_gemini)
+        webChatGPT = findViewById(R.id.web_chatgpt)
+        webGrok = findViewById(R.id.web_grok)
+        webClaude = findViewById(R.id.web_claude)
+
+        outputBox = findViewById(R.id.output_box)
+        promptInput = findViewById(R.id.prompt_input)
+        btnSend = findViewById(R.id.btn_send)
+        btnNext = findViewById(R.id.btn_next)
+        btnMix = findViewById(R.id.btn_mix)
+
+        outputBox.movementMethod = ScrollingMovementMethod()
+
+        setupWebView(webCopilot, aiUrls[0])
+        setupWebView(webGemini, aiUrls[1])
+        setupWebView(webChatGPT, aiUrls[2])
+        setupWebView(webGrok, aiUrls[3])
+        setupWebView(webClaude, aiUrls[4])
+
+        btnSend.setOnClickListener {
+            val prompt = promptInput.text.toString().trim()
+            if (prompt.isNotEmpty()) {
+                lastPrompt = prompt
+                IAIEngine.observePrompt(prompt)
+                broadcast(prompt)
+                outputBox.text = "Prompt sent. Waiting for responses..."
+                responses.clear()
+                currentIndex = 0
+            }
+        }
+
+        btnNext.setOnClickListener {
+            val name = responseOrder[currentIndex]
+            val resp = responses[name] ?: "(No response yet from $name)"
+            outputBox.text = "[$name]\n\n$resp"
+            currentIndex = (currentIndex + 1) % responseOrder.size
+        }
+
+        btnMix.setOnClickListener {
+            if (responses.isEmpty()) {
+                outputBox.text = "No responses yet."
+                return@setOnClickListener
+            }
+            val mixed = responses.entries.joinToString("\n\n") { "[${it.key}]\n${it.value}" }
+            outputBox.text = mixed
+        }
+    }
+
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun setupWebView(web: WebView, url: String) {
+        val s: WebSettings = web.settings
+        s.javaScriptEnabled = true
+        s.domStorageEnabled = true
+        s.loadWithOverviewMode = true
+        s.useWideViewPort = true
+        s.javaScriptCanOpenWindowsAutomatically = true
+        s.mediaPlaybackRequiresUserGesture = false
+
+        web.webViewClient = WebViewClient()
+        web.webChromeClient = WebChromeClient()
+        web.loadUrl(url)
+    }
+
+    private fun broadcast(prompt: String) {
+        val js = """
+            (function() {
+                console.log("Prompt from host:", "$prompt");
+            })();
+        """.trimIndent()
+
+        listOf(webCopilot, webGemini, webChatGPT, webGrok, webClaude)
+            .forEach { it.evaluateJavascript(js, null) }
+    }
+}
+EOF
+
+echo "============================================================"
+echo " FULL PROJECT GENERATED SUCCESSFULLY "
+echo " Open the '$APP_NAME' folder in Android Studio and run it."
+echo ""
+echo " To push to GitHub:"
+echo "   git init"
+echo "   git add ."
+echo "   git commit -m \"Initial Multi AI Hub\""
+echo "   git branch -M main"
+echo "   git remote add origin <YOUR_GITHUB_REPO_URL>"
+echo "   git push -u origin main"
+echo "============================================================"
